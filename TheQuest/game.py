@@ -20,7 +20,6 @@ class Thequest():
             self.escena_activa += 1
             if self.escena_activa >= len(self.escenas):
                 self.escena_activa = 0
-
             
 
             
