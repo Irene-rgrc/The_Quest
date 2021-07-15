@@ -4,7 +4,6 @@ import random
 from enum import Enum
 from pygame.locals import *
 from pygame import mixer
-from math import nextafter
 import sys
 
 
@@ -77,7 +76,7 @@ class Ship(pg.sprite.Sprite):
             self.estado = Ship.Estado.explotando
             return 1
     
-    def update(self, dt):
+    def update(self,dt):
         
         if self.estado == Ship.Estado.viva:
             #Imagen
@@ -99,8 +98,10 @@ class Ship(pg.sprite.Sprite):
             else:
                 self.vy = 7
 
-        elif self.estado == Ship.Estado.explotando:
+        if self.estado == Ship.Estado.explotando:
             #Explosion
+            mixer.music.load('boom.wav')
+            mixer.music.play()
             self.milisegundos_acumulados += dt
             if self.milisegundos_acumulados >= self.milisegundos_para_cambiar:
                 self.imagen_actual += 1
@@ -112,22 +113,18 @@ class Ship(pg.sprite.Sprite):
            
             
         
-        elif self.estado == Ship.Estado.muerta:
-            self.estado = Ship.Estado.viva
+        if self.estado == Ship.Estado.muerta:
+            if self.prueba_colision != 1:
+                self.estado = Ship.Estado.viva
         
-        else:
-            self.estado = Ship.Estado.aterrizando
+        if self.estado == Ship.Estado.aterrizando:
             self.rect.x += 5
-            if self.rect.x > ANCHO//2:
-                self.rect.x == ANCHO//2
-                
-            self.image = pg.transform.rotozoom(self.WIN, 180, 1)
-            self.rect.x += 5
-            if self.rect.x > ANCHO - 125:
-                self.rect.x = ANCHO - 125
-            #Animacion de fin de nivel
+            if self.rect.x > ANCHO - 300:
+                self.rect.x = ANCHO - 300
+            self.image = pg.transform.rotate(self.image, (180))
         
-        #if Ship.Estado.aterrizando: Animacion con el planeta    
+        if self.prueba_colision == 1:
+            self.estado = Ship.Estado.explotando 
 
 
 class Meteorito(pg.sprite.Sprite):
@@ -201,8 +198,8 @@ class Planet(pg.sprite.Sprite):
         
     def update(self, dt):
         if self.estado == Planet.Estado.lejos:
-            self.x =  ANCHO + 300
-            self.y =  ALTURA//2
+            self.x = ANCHO
         if self.estado == Planet.Estado.cerca:
-            self.x =  ANCHO + 100
-            self.y =  ALTURA//2
+            self.rect.x += 5
+            if self.rect.x > ANCHO - 500:
+                self.rect.x = ANCHO - 500
