@@ -1,7 +1,6 @@
 import pygame as pg
 from TheQuest import ANCHO, ALTURA, levels, FPS
 from TheQuest.entities import MarcadorH, Ship, Meteorito, Planet
-from math import nextafter
 import sys
 import random
 from enum import Enum
@@ -33,6 +32,7 @@ class Game(Escene):
         super().__init__(WIN)
         self.grupoJugador = pg.sprite.Group()
         self.grupoMeteoritos = pg.sprite.Group()
+        self.grupoPlaneta = pg.sprite.Group()
         
         self.cuentaPuntos = MarcadorH(10,10, fontsize=50)
         self.cuentaVidas = MarcadorH(1180, 10, "topright", 50, (255, 255, 255))
@@ -53,11 +53,10 @@ class Game(Escene):
         self.background = pg.image.load('./Assets/space.png')
         self.musica_background = pg.mixer.Sound('background.wav')
         
-        self.planet = Planet(ANCHO//2, ALTURA//2)
         self.planeta = Planet.Estado.lejos
-        self.todoGrupo.add(self.planet)
-        
-        #Las pongo?
+        self.planet = Planet(ANCHO + 100, ALTURA//2)
+        self.todoGrupo.add(self.grupoPlaneta)
+    
         self.puntuacion = 0
         self.vidas = 3
         self.level = 0
@@ -76,14 +75,15 @@ class Game(Escene):
         self.grupoMeteoritos.empty()
         self.todoGrupo.remove(self.cuentaPuntos, self.cuentaVidas)
         self.todoGrupo.add(self.cuentaPuntos, self.cuentaVidas)
-    
         
     def main_loop(self):
+        
+        self.reseteo = self.reset()
+        
         reloj = pg.time.Clock()
         game_over = False
         self.musica_background.play(-1)
-        
-        self.n = 2
+    
         for i in range(self.n):
                 self.meteorito = Meteorito(x = ANCHO + 5,y = random.randint(0,ALTURA - 60))
                 self.grupoMeteoritos.add(self.meteorito)
@@ -98,49 +98,47 @@ class Game(Escene):
             self.cuentaPuntos.text = self.puntuacion
             self.cuentaVidas.text = self.vidas
             
-            for nave in self.grupoJugador:
-                if nave.estado == Ship.Estado.viva:
-                    nave.prueba_colision(self.grupoMeteoritos)
-                if nave.estado == Ship.Estado.explotando:
-                    mixer.music.load('boom.wav')
-                    mixer.music.play()
-                if nave.estado == Ship.Estado.muerta:
-                    self.vidas -= 1
-                             
-                else:
-                    for meteorito in self.grupoMeteoritos:
-                        if meteorito.rect.x < 10:
-                            self.puntuacion += 5 
+            self.spaceship.prueba_colision(self.grupoMeteoritos)
+             
+            for meteorito in self.grupoMeteoritos:
+                if meteorito.rect.x < 10:
+                    self.puntuacion += 5 
                             
-                    if (self.contador)/1000 > 5:
-                        for meteorito in self.grupoMeteoritos:
-                            if meteorito.rect.x < 10:
-                                self.grupoMeteoritos.remove(meteorito)
-                                self.todoGrupo.remove(meteorito)
-                        self.planeta = Planet.Estado.cerca
-                        self.estado = Ship.Estado.aterrizando
-                        self.final = MarcadorH(ANCHO// 2, ALTURA//2, 'center', 60, (255,255,255))
-                        self.final.text = ('Pulsa espacio para continuar')
-                        self.todoGrupo.add(self.final)
-                        teclas_pulsadas = pg.key.get_pressed()
-                        if teclas_pulsadas[pg.K_SPACE]:
-                            self.estado = Ship.Estado.viva
-                            self.planeta = Planet.Estado.cerca
-                            self.contador = 0
-                            self.puntuacion = 0
-                            self.level += 1
-                            meteorito.subir_velocidad(levels[self.level])
-                            self.n += 1
-                            for meteorito in self.grupoMeteoritos:
-                                for i in range(self.n):
-                                    self.meteorito = Meteorito(x = ANCHO + 5,y = random.randint(0,ALTURA - 60))
-                                    self.grupoMeteoritos.add(self.meteorito)
-                                    self.todoGrupo.add(self.grupoMeteoritos)
-                         
-                                
+            if (self.contador)/1000 > 5:
+                for meteorito in self.grupoMeteoritos:
+                    if meteorito.rect.x < 10:
+                        self.grupoMeteoritos.remove(meteorito)
+                        self.todoGrupo.remove(meteorito)
                 
+                self.spaceship.estado = Ship.Estado.aterrizando
+                self.planet = Planet.Estado.cerca
+                self.final = MarcadorH(ANCHO// 2, ALTURA//2, 'center', 60, (255,255,255))
+                self.final.text = ('Pulsa espacio para continuar')
+                self.todoGrupo.add(self.final)   
+            
+                teclas_pulsadas = pg.key.get_pressed()
+                if teclas_pulsadas[pg.K_SPACE]:
+                    
+                    self.spaceship.estado = Ship.Estado.viva
+                        
+                    self.n += 1
+                    for meteorito in self.grupoMeteoritos:
+                        for i in range(self.n):
+                            meteorito = Meteorito(x = ANCHO + 5,y = random.randint(0,ALTURA - 60))
+                            self.grupoMeteoritos.add(meteorito)
+                            self.todoGrupo.add(self.grupoMeteoritos)
+                            meteorito.subir_velocidad(levels[self.level])
+                        
+                    self.planeta = Planet.Estado.lejos
+                    self.spaceship.estado = Ship.Estado.viva
+                    self.contador = 0
+                    self.puntuacion = 0
+                    self.level += 1
+                        
+                           
             self.todoGrupo.update(dt)
-                  
+            
+            
             self.WIN.blit(self.background, (0,0))
             self.todoGrupo.draw(self.WIN)
             
@@ -216,7 +214,7 @@ class Gameacabado(Escene):
     def __init__(self,WIN):
         super().__init__(WIN)
         self.instrucciones = MarcadorH(ANCHO//2, ALTURA//2, 'center', 150, (255,0,0))
-        self.instrucciones.text = ('GAMEOVER')
+        self.instrucciones.text = ('PUNTUACIÓN')
         self.rempezar = MarcadorH(ANCHO//2 + 200, ALTURA//2 + 200, 'center', 50, (0,0,0))
         self.rempezar.text = ('Pulsa a para volver a empezar')
         self.todoGrupo.add(self.instrucciones, self.rempezar)
