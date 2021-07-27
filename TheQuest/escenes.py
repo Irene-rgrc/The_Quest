@@ -67,7 +67,7 @@ class Game(Escene):
         self.musica_background.stop()
         self.estado = Ship.Estado.viva
         self.planeta = Planet.Estado.lejos
-        self.n = 3
+        self.n = 2
         self.puntuacion = 0
         self.vidas = 3
         self.level = 0
@@ -99,7 +99,13 @@ class Game(Escene):
             self.cuentaVidas.text = self.vidas
             
             self.spaceship.prueba_colision(self.grupoMeteoritos)
-             
+            for nave in self.grupoJugador:
+                if nave.estado == Ship.Estado.aterrizando:
+                    nave.update(dt)
+            
+            if self.spaceship.Estado == Ship.Estado.muerta:
+                self.vidas -=1
+ 
             for meteorito in self.grupoMeteoritos:
                 if meteorito.rect.x < 10:
                     self.puntuacion += 5 
@@ -137,7 +143,6 @@ class Game(Escene):
                         
                            
             self.todoGrupo.update(dt)
-            
             
             self.WIN.blit(self.background, (0,0))
             self.todoGrupo.draw(self.WIN)
