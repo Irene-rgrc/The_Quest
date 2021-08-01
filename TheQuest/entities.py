@@ -111,17 +111,20 @@ class Ship(pg.sprite.Sprite):
                     self.imagen_actual = 0
                 self.image = self.imagenes[self.imagen_actual]
            
-            
-        
         if self.estado == Ship.Estado.muerta:
             if self.prueba_colision != 1:
                 self.estado = Ship.Estado.viva
         
         if self.estado == Ship.Estado.aterrizando:
+            
+            self.imagen_actual = 0
+            self.image = self.imagenes[self.imagen_actual]
+            
+            self.image = pg.transform.rotate(self.image, (180))
+            
             self.rect.x += 5
             if self.rect.x > ANCHO - 300:
                 self.rect.x = ANCHO - 300
-            self.image = pg.transform.rotate(self.image, (180))
         
         if self.prueba_colision == 1:
             self.estado = Ship.Estado.explotando 
