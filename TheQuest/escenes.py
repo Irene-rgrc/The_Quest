@@ -6,6 +6,8 @@ import random
 from enum import Enum
 from pygame.locals import *
 from pygame import mixer
+#import sqlite3
+
 
 class Escene():
     def __init__(self, WIN):
@@ -62,6 +64,8 @@ class Game(Escene):
         self.level = 0
         
         self.contador = 0
+        
+        self.angulo = 0
     
     def reset(self):
         self.musica_background.stop()
@@ -102,9 +106,8 @@ class Game(Escene):
             for nave in self.grupoJugador:
                 if nave.estado == Ship.Estado.aterrizando:
                     nave.update(dt)
-            
-            if self.spaceship.Estado == Ship.Estado.muerta:
-                self.vidas -=1
+                if nave.estado == Ship.Estado.muerta:
+                    self.vidas -= 1
  
             for meteorito in self.grupoMeteoritos:
                 if meteorito.rect.x < 10:
@@ -128,8 +131,9 @@ class Game(Escene):
                     self.spaceship.estado = Ship.Estado.viva
                         
                     self.n += 1
-                    for meteorito in self.grupoMeteoritos:
-                        for i in range(self.n):
+                
+                
+                    for i in range(self.n):
                             meteorito = Meteorito(x = ANCHO + 5,y = random.randint(0,ALTURA - 60))
                             self.grupoMeteoritos.add(meteorito)
                             self.todoGrupo.add(self.grupoMeteoritos)
